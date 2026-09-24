@@ -1,6 +1,6 @@
 # Báo cáo kiểm thử
 
-Ngày thực hiện: **17/09/2026**, cập nhật **21/09/2026**. Môi trường Windows, Python **3.13.12**, Node.js **24.19.0**, SQLite built-in. File gốc `Laptop_data.xlsx` được giữ nguyên.
+Ngày thực hiện: **17/09/2026**, cập nhật **24/09/2026**. Môi trường Windows, Python **3.13.12**, Node.js **24.19.0**, SQLite built-in. File gốc `Laptop_data.xlsx` được giữ nguyên.
 
 | Kiểm tra | Kết quả |
 |---|---|
@@ -8,11 +8,12 @@ Ngày thực hiện: **17/09/2026**, cập nhật **21/09/2026**. Môi trường
 | Import lần đầu | 50 created, 0 failed |
 | Import lại qua API/UI | 50 updated; không tạo sản phẩm trùng |
 | Import chế độ bỏ qua | 50 skipped |
-| Pytest | **55 passed**, 1.17 giây |
+| Pytest | **60 passed**, 1.57 giây |
 | Ruff check | **All checks passed** |
 | Ruff format | **Pass** |
-| TypeScript + Vite production build | **Pass**, 1593 modules; JS ~319 kB, gzip ~95 kB |
-| Playwright Chromium | **7 passed**, 21.2 giây |
+| TypeScript + Vite production build | **Pass**, 1594 modules; JS ~344 kB, gzip ~101 kB |
+| Playwright Chromium | **11 passed**, 20.1 giây; backend/frontend kiểm thử riêng tại :8011/:5174 |
+| Migration lịch sử | Giữ nguyên 9 phiên cũ, logs, 50 laptop và tri thức; thêm owner_id, backup tự động, SQLite integrity_check = ok |
 | API health, frontend HTTP | Hoạt động tại 127.0.0.1:8000 và :5173 |
 | Script local | Đã kiểm tra dừng đúng các process dự án và khởi động lại hai dịch vụ |
 
@@ -33,6 +34,10 @@ Ngày thực hiện: **17/09/2026**, cập nhật **21/09/2026**. Môi trường
 - Import file thật, duplicate rows, reimport/update/skip, partial failures và giữ raw data.
 - Ngân sách bắt buộc, GPU unknown không nhận điểm, kiểm tra trực tiếp yêu cầu GPU rời, false không cấm GPU rời.
 - Consultation snapshot và inference trace giữ nguyên sau xóa luật và sản phẩm.
+- Tách lịch sử Admin và hai UUID User: kiểm tra danh sách, phân trang, tổng số, dashboard và truy cập trực tiếp chi tiết phiên khác trả 404; thiếu định danh hoặc UUID sai trả 422.
+- Xóa nhiều phiên Admin theo sở hữu trong một giao dịch; ID rỗng/sai/thuộc User không xóa dở danh sách; User gọi xóa trả 403; logs của phiên bị xóa được dọn, phiên User khác vẫn giữ nguyên.
+- Excel mẫu tải về đúng MIME/tên file, một sheet, chỉ một dòng chứa 12 header khớp file gốc; điền thêm một laptop vào mẫu rồi import thành công.
+- Migration SQLite cũ giữ ID và snapshot, tạo backup trước ALTER; chạy lại không tạo backup trùng và có index cho owner_id.
 
 Tests backend dùng SQLite in-memory riêng và thay lifespan để không tác động database demo. Có **2 cảnh báo deprecation từ Starlette/AnyIO** về httpx và BlockingPortal; không có test thất bại.
 
@@ -45,12 +50,16 @@ Tests backend dùng SQLite in-memory riêng và thay lifespan để không tác 
 5. Visual Rule Builder → nhập giá trị VND có dấu phân nhóm → lưu → tắt → nhân bản; xác nhận không còn nút Kiểm thử và dọn luật tạm.
 6. Thêm/sửa thuộc tính → help → mobile 390×844 → menu → tư vấn; kiểm tra không tràn chiều ngang toàn trang.
 7. Chọn Excel → import lại → báo cáo 50 thành công.
+8. Tạo 17 phiên Admin trên DB kiểm thử → chọn toàn bộ trang 1 và một phiên trang 2 → hủy → xác nhận xóa 16 phiên → kiểm tra phiên không được chọn còn nguyên.
+9. User lưu phiên riêng, tải lại trang vẫn thấy và xuất JSON đúng phiên; đổi Admin/User cập nhật lịch sử; trình duyệt thứ hai có UUID khác và không thấy phiên của User thứ nhất.
+10. Admin thấy dữ liệu Excel gốc trong chi tiết laptop, User không thấy; cả trang Help và popup chỉ có 2 mục cho User, Admin có 13 mục; header giữ top=0 khi cuộn ở 1440px và 390px, không tràn trang theo chiều ngang.
+11. Tải file Excel mẫu qua giao diện nhận đúng file `.xlsx`.
 
 Đã kiểm tra ngân sách/giá tự phân nhóm ba chữ số trong giao diện nhưng request tư vấn vẫn gửi số VND thuần; lịch sử và luật hiển thị tiền có dấu phân nhóm. Đã sửa liên kết label–control để dropdown có nhãn rõ ràng, đồng thời kiểm tra modal, điều hướng và JavaScript errors trong luồng tư vấn.
 
-Ảnh chụp bản chạy thực tế: [Dashboard](dashboard.png), [Working Memory](inference.png), [Mobile](mobile.png).
+Ảnh minh họa từ các lần kiểm tra trước: [Dashboard](dashboard.png), [Working Memory](inference.png), [Mobile](mobile.png). Lần kiểm tra mới lưu ảnh riêng tại `frontend/test-results`; đã xem thêm ảnh màn hình hướng dẫn User và chọn lịch sử Admin.
 
-Playwright dùng database demo đang chạy, giữ các phiên tư vấn demo để có lịch sử minh họa. Sản phẩm, thuộc tính và luật tạm được dọn sau các bài đã pass; catalog cuối có 50 laptop, 26 thuộc tính, 30 luật. Có thể tái chạy theo hướng dẫn README; nên dùng DB riêng nếu không muốn reimport đè dữ liệu đang chỉnh sửa.
+Lần kiểm tra 24/09 chạy Playwright với database riêng `.runtime/history-check-20260924/test.db`, không import hoặc xóa phiên trên database người dùng. Database thật chỉ được migration chủ sở hữu; đã đối chiếu với bản sao lưu: bảng products, rules, attributes, inference_logs và toàn bộ nội dung snapshot của 9 phiên cũ không đổi. Các phiên cũ thuộc `demo-admin` vì dữ liệu trước đây không lưu chủ sở hữu. API/ứng dụng demo tại :8000/:5173 tiếp tục hoạt động.
 
 ## Giới hạn xác minh
 

@@ -24,6 +24,7 @@ import HistoryPage from "./pages/History";
 import ImportData from "./pages/ImportData";
 import Help from "./pages/Help";
 import { Modal } from "./components/ui";
+import { getDemoRole, setDemoRole } from "./services/account";
 const links = [
   { id: "dashboard", label: "Tổng quan", icon: LayoutDashboard },
   { id: "consult", label: "Tư vấn laptop", icon: MessageSquare },
@@ -43,11 +44,18 @@ const links = [
 ];
 export default function App() {
   const [page, setPage] = useState(location.hash.slice(1) || "dashboard"),
-    [admin, setAdmin] = useState(true),
+    [admin, setAdmin] = useState(() => getDemoRole() === "admin"),
     [mobile, setMobile] = useState(false),
     [help, setHelp] = useState(false),
     [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const roleMenu = useRef<HTMLDivElement>(null);
+  const switchAccount = (isAdmin: boolean) => {
+    setDemoRole(isAdmin ? "admin" : "user");
+    setAdmin(isAdmin);
+    setRoleMenuOpen(false);
+    setHelp(false);
+    window.scrollTo(0, 0);
+  };
   useEffect(() => {
     const listener = () => setPage(location.hash.slice(1) || "dashboard");
     window.addEventListener("hashchange", listener);
@@ -155,7 +163,11 @@ export default function App() {
             </span>
           </div>
           <div className="topbar-actions">
-            <button className="help-button" onClick={() => setHelp(true)}>
+            <button
+              className="help-button"
+              aria-label="Trợ giúp"
+              onClick={() => setHelp(true)}
+            >
               <CircleHelp size={18} />
               <span>Trợ giúp</span>
             </button>
@@ -188,8 +200,7 @@ export default function App() {
                     role="menuitemradio"
                     aria-checked={admin}
                     onClick={() => {
-                      setAdmin(true);
-                      setRoleMenuOpen(false);
+                      switchAccount(true);
                     }}
                   >
                     <span className="avatar small">AD</span>
@@ -204,8 +215,7 @@ export default function App() {
                     role="menuitemradio"
                     aria-checked={!admin}
                     onClick={() => {
-                      setAdmin(false);
-                      setRoleMenuOpen(false);
+                      switchAccount(false);
                     }}
                   >
                     <span className="avatar small">US</span>
@@ -220,11 +230,11 @@ export default function App() {
             </div>
           </div>
         </header>
-        <main>
+        <main key={admin ? "admin" : "user"}>
           {effectivePage === "dashboard" ? (
             <Dashboard navigate={navigate} />
           ) : effectivePage === "consult" ? (
-            <Consultation />
+            <Consultation admin={admin} />
           ) : effectivePage === "catalog" ? (
             <Products key="catalog" canDelete={admin} />
           ) : effectivePage === "products" ? (
@@ -239,11 +249,11 @@ export default function App() {
               navigate={navigate}
             />
           ) : effectivePage === "history" ? (
-            <HistoryPage />
+            <HistoryPage admin={admin} />
           ) : effectivePage === "import" ? (
             <ImportData />
           ) : (
-            <Help />
+            <Help admin={admin} />
           )}
           <footer className="page-footer">
             <span>
@@ -256,7 +266,7 @@ export default function App() {
       </div>
       {help && (
         <Modal title="Hướng dẫn sử dụng" onClose={() => setHelp(false)} wide>
-          <Help compact />
+          <Help compact admin={admin} />
         </Modal>
       )}
     </div>

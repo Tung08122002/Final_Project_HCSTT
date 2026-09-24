@@ -205,7 +205,7 @@ export default function Products({
         <div>
           <div className="eyebrow">DỮ LIỆU SẢN PHẨM</div>
           <h1>{admin ? "Quản lý sản phẩm" : "Danh sách laptop"}</h1>
-          <p>Khám phá cấu hình, thông số và dữ liệu gốc của từng laptop.</p>
+          <p>Khám phá cấu hình và thông số của từng laptop.</p>
         </div>
         {admin && (
           <button className="button" onClick={() => setEditor({})}>
@@ -384,7 +384,11 @@ export default function Products({
         />
       )}
       {detail && (
-        <ProductDetail product={detail} onClose={() => setDetail(undefined)} />
+        <ProductDetail
+          product={detail}
+          showRawData={canManage}
+          onClose={() => setDetail(undefined)}
+        />
       )}
       {bulkDeleting && selectedProducts.length > 0 && (
         <Modal

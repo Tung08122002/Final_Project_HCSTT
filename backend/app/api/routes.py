@@ -2,15 +2,18 @@ from io import BytesIO
 from typing import Literal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.api.identity import DemoAccount, admin_account, current_account
 from app.db.session import get_db
-from app.importers.excel import import_excel
+from app.importers.excel import excel_template, import_excel
 from app.models.entities import Attribute, ConsultationSession, Product, Rule
 from app.repositories.catalog import CatalogRepository, rule_dict, serialize
 from app.schemas.contracts import (
     AttributeInput,
+    ConsultationBulkDeleteInput,
     InferenceInput,
     ProductBulkDeleteInput,
     ProductInput,
@@ -35,10 +38,11 @@ def health():
 
 
 @router.get("/dashboard")
-def dashboard(db: Session = Depends(get_db)):
+def dashboard(db: Session = Depends(get_db), account: DemoAccount = Depends(current_account)):
     def count(model):
         return db.scalar(select(func.count()).select_from(model))
 
+    history = consultations(1, 5, db, account)
     return {
         "total_products": count(Product),
         "total_brands": db.scalar(select(func.count(func.distinct(Product.brand)))),
@@ -47,7 +51,7 @@ def dashboard(db: Session = Depends(get_db)):
             select(func.count()).select_from(Rule).where(Rule.enabled.is_(True))
         ),
         "total_attributes": count(Attribute),
-        "consultation_sessions": count(ConsultationSession),
+        "consultation_sessions": history["total"],
         "brands": [
             {"name": name or "Chưa rõ", "count": n}
             for name, n in db.execute(
@@ -56,7 +60,7 @@ def dashboard(db: Session = Depends(get_db)):
                 .order_by(func.count().desc())
             )
         ],
-        "recent_consultations": consultations(1, 5, db)["items"],
+        "recent_consultations": history["items"],
     }
 
 
@@ -109,6 +113,15 @@ def import_products(
         raise
     except Exception as exc:
         raise HTTPException(422, "Không đọc được Excel. Kiểm tra file và định dạng.") from exc
+
+
+@router.get("/products/template")
+def download_product_template():
+    return Response(
+        content=excel_template(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": 'attachment; filename="Laptop_template.xlsx"'},
+    )
 
 
 @router.get("/products/{id}")
@@ -210,8 +223,12 @@ def inference(data: InferenceInput, db: Session = Depends(get_db)):
 
 
 @router.post("/consultations", status_code=201)
-def consult(data: InferenceInput, db: Session = Depends(get_db)):
-    return run_consultation(db, data, persist=True)
+def consult(
+    data: InferenceInput,
+    db: Session = Depends(get_db),
+    account: DemoAccount = Depends(current_account),
+):
+    return run_consultation(db, data, persist=True, owner_id=account.owner_id)
 
 
 @router.get("/consultations")
@@ -219,9 +236,12 @@ def consultations(
     page: int = Query(1, ge=1),
     page_size: int = Query(15, ge=1, le=100),
     db: Session = Depends(get_db),
+    account: DemoAccount = Depends(current_account),
 ):
+    owned = ConsultationSession.owner_id == account.owner_id
     rows = db.scalars(
         select(ConsultationSession)
+        .where(owned)
         .order_by(ConsultationSession.id.desc())
         .offset((page - 1) * page_size)
         .limit(page_size)
@@ -237,14 +257,48 @@ def consultations(
             }
             for s in rows
         ],
-        "total": db.scalar(select(func.count()).select_from(ConsultationSession)),
+        "total": db.scalar(select(func.count()).select_from(ConsultationSession).where(owned)),
         "page": page,
     }
 
 
+@router.delete("/consultations")
+def delete_consultations(
+    data: ConsultationBulkDeleteInput,
+    db: Session = Depends(get_db),
+    account: DemoAccount = Depends(admin_account),
+):
+    selected = list(
+        db.scalars(
+            select(ConsultationSession).where(
+                ConsultationSession.id.in_(data.ids),
+                ConsultationSession.owner_id == account.owner_id,
+            )
+        )
+    )
+    if {session.id for session in selected} != data.ids:
+        raise HTTPException(
+            404, "Có phiên không tồn tại trong lịch sử của bạn; hãy tải lại danh sách"
+        )
+    for session in selected:
+        db.delete(session)
+    db.commit()
+    return {"deleted": len(selected)}
+
+
 @router.get("/consultations/{id}")
-def consultation(id: int, db: Session = Depends(get_db)):
-    session = require(db, ConsultationSession, id)
+def consultation(
+    id: int,
+    db: Session = Depends(get_db),
+    account: DemoAccount = Depends(current_account),
+):
+    session = db.scalar(
+        select(ConsultationSession).where(
+            ConsultationSession.id == id, ConsultationSession.owner_id == account.owner_id
+        )
+    )
+    if session is None:
+        raise HTTPException(404, "Không tìm thấy phiên trong lịch sử của bạn")
     return {
         **session.recommendation_json,
         "session_id": session.id,

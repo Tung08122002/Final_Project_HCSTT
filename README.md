@@ -232,13 +232,22 @@ Phân hạng GPU chỉ là heuristic demo: RTX có cấp theo phân khúc mã xx
 - Form tư vấn có ngân sách, mục đích chính/phụ, gaming level, mobility, RAM, GPU, storage, weight, display, facts bổ sung.
 - Brand/CPU/GPU/color/display dùng autocomplete từ database, debounce 300 ms, tối đa 30 gợi ý, có xóa lựa chọn. Danh mục có các nút số để mở thẳng trang cần xem; danh sách số được rút gọn bằng dấu `…` khi có nhiều trang.
 - Các ô VND tự chia nhóm ba chữ số khi nhập, ví dụ `30000000` hiển thị `30.000.000`; API và JSON vẫn nhận số `30000000`. Giá trong lịch sử, tiêu chí, luật và dấu vết suy luận cũng được định dạng VND.
-- Product CRUD; ở vai trò Quản trị demo, đánh dấu một hoặc nhiều laptop trên các trang của Danh sách laptop/Quản lý sản phẩm rồi nhấn **Xóa đã chọn**. Hệ thống hiện nút sau khi chọn, liệt kê các mã trong hộp xác nhận và xóa cả nhóm trong một giao dịch. Mỗi chi tiết hiển thị dữ liệu gốc, cảnh báo và điểm từng tiêu chí.
+- Product CRUD; ở vai trò Quản trị demo, đánh dấu một hoặc nhiều laptop trên các trang của Danh sách laptop/Quản lý sản phẩm rồi nhấn **Xóa đã chọn**. Hệ thống hiện nút sau khi chọn, liệt kê các mã trong hộp xác nhận và xóa cả nhóm trong một giao dịch. Chỉ Admin thấy phần **Dữ liệu gốc từ Excel** trong cửa sổ chi tiết; User xem thông số, cảnh báo và điểm từng tiêu chí.
+- **Import dữ liệu → Tải file Excel mẫu** tải `Laptop_template.xlsx` chỉ có 12 header giống `Laptop_data.xlsx`, không có dữ liệu mẫu. Giữ nguyên dòng 1, điền mỗi laptop từ dòng 2 của sheet đầu tiên rồi lưu `.xlsx` để import. Template và bộ import dùng chung danh sách tên cột.
 - Rule Builder chọn thuộc tính/toán tử/giá trị, thêm điều kiện và nhóm, thêm kết luận THEN; CRUD, clone, enable/disable. Diễn biến áp dụng luật được xem tại Tư vấn laptop → Xem cách suy luận.
 - Thu nhận tri thức: thêm/sửa thuộc tính, allowed values, merge strategy, ánh xạ matching. Thêm Conclusion qua phần THEN của Rule Builder.
 - Không được xóa/đổi tên/tắt thuộc tính đang được luật tham chiếu. Đổi kiểu hoặc allowed values phải giữ hợp lệ toàn bộ luật liên quan.
-- Lịch sử lưu cả snapshot luật và sản phẩm; sửa/xóa dữ liệu hiện tại không viết lại lịch sử. Tải inference log JSON.
-- Help ở góc trên bên phải, help page trong sidebar, responsive mobile, focus trap và Escape cho modal.
-- Nút **Đổi tài khoản** cạnh avatar mở menu chuyển giữa **Quản trị demo / Người dùng**. Đây là tiện ích giao diện, **không phải authentication hay phân quyền API**. Ứng dụng mặc định chỉ bind loopback để demo local.
+- Lịch sử lưu cả snapshot luật và sản phẩm; sửa/xóa dữ liệu hiện tại không viết lại lịch sử. Có thể tải inference log JSON. Admin đánh dấu từng phiên hoặc tất cả phiên trên trang hiện tại, chọn thêm ở trang khác rồi nhấn **Xóa đã chọn**. Hộp xác nhận liệt kê mã và thời gian; xóa phiên xóa cả `inference_logs` liên quan trong cùng giao dịch, không xóa laptop/luật.
+- Header luôn ở đầu màn hình khi cuộn trên desktop/mobile. Hướng dẫn và cửa sổ **Trợ giúp** có các bước, ví dụ và lưu ý nổi bật; User chỉ thấy **1. Cách tư vấn laptop** và **2. Cách tìm laptop**, Admin thấy đầy đủ các mục quản trị.
+- Nút **Đổi tài khoản** cạnh avatar mở menu chuyển giữa **Quản trị demo / Người dùng**. Khi chuyển, kết quả và lựa chọn của tài khoản trước được đóng; trạng thái vai trò được giữ theo tab qua lần tải lại trang.
+
+### Lịch sử riêng trong chế độ demo
+
+Hệ thống chưa có đăng nhập. Admin dùng hồ sơ `demo-admin`; mỗi trình duyệt (cùng origin) có một UUID User được lưu trong `localStorage` với khóa `laptop-advisor.demo-user`. Phiên của User được lưu với `owner_id = demo-user:<UUID>` trong bảng `consultation_sessions`. Vì vậy Admin và User không dùng chung lịch sử, và User trên hai trình duyệt khác nhau cũng có lịch sử riêng. API lọc cả danh sách, tổng số, chi tiết phiên và lịch sử gần đây trên Tổng quan theo hồ sơ hiện tại. Chức năng xóa lịch sử chỉ cho vai trò Admin và chỉ xóa phiên thuộc hồ sơ Admin.
+
+**Dùng lại cùng trình duyệt và địa chỉ web để xem lịch sử User cũ.** `localhost:5173` và `127.0.0.1:5173` là hai origin khác nhau. Xóa dữ liệu website hoặc dùng ẩn danh sẽ tạo hồ sơ mới; dữ liệu cũ vẫn ở database nhưng không tự chuyển sang hồ sơ mới. Chưa có đồng bộ tài khoản giữa các thiết bị.
+
+Đây là định danh cho demo local, **không phải xác thực hay phân quyền bảo mật**: header `X-Demo-Role`/`X-Demo-User` do client gửi và có thể bị thay đổi. Các API quản trị hiện có vẫn cần bổ sung authentication/RBAC trước khi triển khai công khai. Ứng dụng mặc định bind loopback.
 
 ## 9. Kiến trúc, cấu trúc project và database
 
@@ -331,7 +340,7 @@ SELECT changes();
 | rules | Mã/tên, nhóm, priority, enabled, logical operator, timestamps |
 | rule_conditions | Attribute/operator/value, group, group operator, sort order |
 | rule_actions | Fact/value, message, score_delta |
-| consultation_sessions | Initial/final facts JSON, toàn bộ result snapshot, thời gian |
+| consultation_sessions | `owner_id` xác định hồ sơ sở hữu, initial/final facts JSON, toàn bộ result snapshot, thời gian |
 | inference_logs | Session, bước, rule_id, facts before/after, conditions, conflict set |
 
 ```mermaid
@@ -344,7 +353,16 @@ erDiagram
 
 Xóa rule → xóa conditions/actions, `inference_logs.rule_id` thành NULL. Snapshot rule_code/conditions/actions vẫn nằm trong session. Thuộc tính được tham chiếu bằng tên và kiểm tra ở service layer.
 
-Phiên bản đầu dùng **idempotent initialization** (`create_all`), chưa có migration chỉnh schema đã tồn tại. Nếu thay đổi cấu trúc model sau này cần Alembic; `create_all` không tự ALTER bảng. Đổi PostgreSQL chủ yếu qua `DATABASE_URL` và cài driver `psycopg`, nhưng cần migration/copy dữ liệu và kiểm thử dialect; không tự chuyển nội dung file SQLite.
+Khởi động backend chạy migration riêng tại `app/db/migrations.py` để thêm `consultation_sessions.owner_id` và index nếu database cũ chưa có, sau đó `create_all` cho bảng mới. Trước khi ALTER file SQLite cũ, hệ thống tự tạo bản sao nhất quán bằng SQLite backup API: `backend/data/laptop_advisor.before-history-ownership-<timestamp>.db`. Migration chạy lại không chuyển dữ liệu hoặc tạo backup lặp.
+
+**Các phiên cũ không ghi chủ sở hữu được giữ cho `demo-admin`**, vì không có dữ liệu để xác định người tạo ban đầu; nội dung snapshot, log và ID sản phẩm được giữ nguyên. Có thể kiểm tra trong terminal:
+
+```sql
+SELECT owner_id, COUNT(*) AS total FROM consultation_sessions GROUP BY owner_id;
+SELECT id, owner_id, created_at FROM consultation_sessions ORDER BY id DESC LIMIT 20;
+```
+
+Các thay đổi schema khác vẫn cần migration riêng; `create_all` không tự ALTER bảng. Đổi PostgreSQL chủ yếu qua `DATABASE_URL` và cài driver `psycopg`, nhưng cần migration/copy dữ liệu và kiểm thử dialect; không tự chuyển nội dung file SQLite.
 
 Các script độc lập:
 
@@ -364,19 +382,22 @@ Tài liệu tương tác tại `/docs`; schema đầy đủ tại `/openapi.json
 | Products | GET/POST `/api/products`; DELETE `/api/products` với `{"ids":[1,2]}` để xóa hàng loạt; GET/PUT/DELETE `/api/products/{id}` |
 | Search | GET `/api/products?q=&brand=&page=1&page_size=12&sort=price` |
 | Autocomplete | GET `/api/products/autocomplete?field=cpu&q=intel` |
-| Import | POST `/api/products/import?update_existing=true` (multipart field `file`) |
+| Import / file mẫu | POST `/api/products/import?update_existing=true` (multipart field `file`); GET `/api/products/template` tải `.xlsx` chỉ có header |
 | Attributes | GET/POST `/api/attributes`; PUT/DELETE `/api/attributes/{id}` |
 | Rules | GET/POST `/api/rules`; GET/PUT/DELETE `/api/rules/{id}` |
 | Inference không lưu | POST `/api/inference/run` với `{"facts":{...},"limit":6,"max_iterations":200}` |
 | Tư vấn có lưu | POST `/api/consultations` cùng payload inference |
-| Lịch sử | GET `/api/consultations?page=1&page_size=15`; GET `/api/consultations/{id}` |
+| Lịch sử | GET `/api/consultations?page=1&page_size=15`; GET `/api/consultations/{id}`; DELETE `/api/consultations` với `{"ids":[1,2]}` (Admin, tối đa 1000 ID) |
 | Thống kê / health | GET `/api/dashboard`; GET `/api/health` |
 
-Ví dụ PowerShell:
+API lưu/đọc/xóa lịch sử và dashboard yêu cầu `X-Demo-Role: admin` hoặc `X-Demo-Role: user`. Với User, gửi thêm `X-Demo-User: <UUID>` ổn định cho hồ sơ đó. Thiếu định danh trả 422; đọc/xóa phiên không thuộc hồ sơ trả 404; User gọi xóa lịch sử trả 403. Frontend tự gửi các header này.
+
+Ví dụ PowerShell (lưu phiên cho Admin):
 
 ```powershell
 $body = @{facts=@{purpose='programming';secondary_purpose='gaming';gaming_level='casual';budget_max=30000000;mobility_priority='medium'}} | ConvertTo-Json
-Invoke-RestMethod http://127.0.0.1:8000/api/consultations -Method Post -ContentType 'application/json' -Body $body
+$headers = @{'X-Demo-Role'='admin'}
+Invoke-RestMethod http://127.0.0.1:8000/api/consultations -Method Post -Headers $headers -ContentType 'application/json' -Body $body
 ```
 
 Response gồm `initial_facts`, `matched_rules`, `steps`, `final_facts`, `working_memory`, `provenance`, `technical_requirements`, `recommended_products`, `explanation`, `termination`, và `session_id` nếu lưu phiên. Mã lỗi 422 cho validation, 404 không tìm thấy, 409 unique/dependency conflict. PUT nhận toàn bộ bản ghi chỉnh sửa; không phải PATCH từng trường.
@@ -400,7 +421,9 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Playwright kiểm tra dashboard, tư vấn/trace/history, CRUD sản phẩm, chọn và xóa hàng loạt laptop, Rule Builder/disable/clone, attribute CRUD, help, import và mobile 390px. Các bài này chạy trên database demo local: chúng dọn sản phẩm/luật/thuộc tính tạm khi thành công, lưu phiên tư vấn demo và import lại Excel. Dùng database riêng nếu dữ liệu đang được chỉnh sửa quan trọng.
+Playwright kiểm tra dashboard, tư vấn/trace/history, CRUD sản phẩm, chọn và xóa hàng loạt laptop/phiên suy diễn, Rule Builder/disable/clone, attribute CRUD, help theo vai trò, tải Excel mẫu, import, tách User theo trình duyệt và header cố định ở mobile 390px. Ảnh kiểm thử ghi vào `frontend/test-results`, không ghi đè ảnh minh họa trong `docs`.
+
+Các bài E2E lưu phiên tư vấn và import lại Excel, vì vậy nên chạy backend với **database kiểm thử riêng**. Có thể đặt `DATABASE_URL=sqlite:///../.runtime/e2e/test.db` khi khởi động backend trên cổng 8011; đặt `LAPTOP_ADVISOR_API_URL=http://127.0.0.1:8011` khi chạy Vite với `--port 5174`; sau đó đặt `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5174` trước `npm run test:e2e`. Danh mục kiểm thử cần được import từ `Laptop_data.xlsx` trước khi chạy các bài cần sản phẩm có sẵn. Backend pytest luôn dùng SQLite độc lập với database thật.
 
 Kết quả thực tế được ghi ở [docs/TEST_REPORT.md](docs/TEST_REPORT.md). `package-lock.json` khóa dependencies frontend; `requirements-lock.txt` ghi phiên bản Python đã kiểm tra. Có thể cài bằng `pip install -r requirements-lock.txt` để tái lập môi trường đã chạy.
 

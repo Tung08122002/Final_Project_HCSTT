@@ -114,6 +114,7 @@ class RuleAction(Base):
 class ConsultationSession(Base):
     __tablename__ = "consultation_sessions"
     id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[str] = mapped_column(String(80), index=True, server_default="demo-admin")
     created_at: Mapped[datetime] = mapped_column(default=now)
     initial_facts_json: Mapped[dict] = mapped_column(JSON)
     final_facts_json: Mapped[dict] = mapped_column(JSON)

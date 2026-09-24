@@ -100,6 +100,18 @@ export default function ImportData() {
         </section>
         <section className="panel">
           <h3 className="mb-4">Cấu trúc file Excel</h3>
+          <a
+            className="button secondary mb-4"
+            href="/api/products/template"
+            download="Laptop_template.xlsx"
+          >
+            <Download size={17} /> Tải file Excel mẫu
+          </a>
+          <p className="muted mb-4">
+            File mẫu chỉ có tên cột.{" "}
+            <strong>Điền mỗi laptop vào một dòng, bắt đầu từ dòng 2</strong>,
+            giữ nguyên header và lưu dưới dạng .xlsx trước khi import.
+          </p>
           <p className="muted mb-3">Dòng đầu tiên phải chứa 12 tên cột sau:</p>
           <div className="flex gap-2 flex-wrap">
             {[

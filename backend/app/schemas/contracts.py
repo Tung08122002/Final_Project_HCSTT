@@ -34,6 +34,10 @@ class ProductBulkDeleteInput(InputModel):
     ids: set[PositiveInt] = Field(min_length=1)
 
 
+class ConsultationBulkDeleteInput(InputModel):
+    ids: set[PositiveInt] = Field(min_length=1, max_length=1000)
+
+
 class AttributeInput(InputModel):
     name: str = Field(pattern=r"^[a-z][a-z0-9_]*$", max_length=100)
     label: str = Field(min_length=1)

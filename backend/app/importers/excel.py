@@ -1,4 +1,9 @@
+from io import BytesIO
+
 import pandas as pd
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
 from sqlalchemy import select
 
 from app.models.entities import Product
@@ -28,6 +33,23 @@ COLUMNS = [
     "Màu sắc",
     "Màn hình",
 ]
+
+
+def excel_template() -> bytes:
+    """Use the importer contract as the single source of template headers."""
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Laptop"
+    sheet.append(COLUMNS)
+    sheet.freeze_panes = "A2"
+    for i, cell in enumerate(sheet[1], start=1):
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill("solid", fgColor="147864")
+        sheet.column_dimensions[get_column_letter(i)].width = max(16, len(cell.value) + 5)
+    output = BytesIO()
+    workbook.save(output)
+    workbook.close()
+    return output.getvalue()
 
 
 def normalize_row(row):

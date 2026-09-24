@@ -30,7 +30,7 @@ const purposes = [
   ["engineering", "Kỹ thuật"],
   ["other", "Khác"],
 ];
-export default function Consultation() {
+export default function Consultation({ admin = false }: { admin?: boolean }) {
   const [facts, setFacts] = useState<Facts>({
     budget_min: 0,
     budget_max: 30000000,
@@ -426,6 +426,7 @@ export default function Consultation() {
       )}
       {selected && (
         <ProductDetail
+          showRawData={admin}
           product={selected.product}
           recommendation={selected}
           onClose={() => setSelected(undefined)}

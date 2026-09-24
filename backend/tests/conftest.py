@@ -40,6 +40,7 @@ def client(monkeypatch):
 
     monkeypatch.setattr(app.router, "lifespan_context", isolated_lifespan)
     with TestClient(app, raise_server_exceptions=True) as c:
+        c.headers["X-Demo-Role"] = "admin"
         yield c
     app.dependency_overrides.clear()
     engine.dispose()

@@ -10,7 +10,10 @@ test("dashboard, consultation, explanation and persisted history", async ({
     page.getByRole("heading", { name: "Tổng quan hệ thống" }),
   ).toBeVisible();
   await expect(page.getByText("Laptop trong danh mục")).toBeVisible();
-  await page.screenshot({ path: "../docs/dashboard.png", fullPage: true });
+  await page.screenshot({
+    path: test.info().outputPath("dashboard.png"),
+    fullPage: true,
+  });
   await page.getByRole("button", { name: "Bắt đầu tư vấn" }).click();
   await expect(
     page.getByRole("heading", { name: "Tư vấn laptop", exact: true }),
@@ -57,7 +60,10 @@ test("dashboard, consultation, explanation and persisted history", async ({
   await expect(
     page.getByText("require_dedicated_gpu", { exact: true }),
   ).toBeVisible();
-  await page.screenshot({ path: "../docs/inference.png", fullPage: true });
+  await page.screenshot({
+    path: test.info().outputPath("inference.png"),
+    fullPage: true,
+  });
   await page.getByRole("button", { name: "Đóng", exact: true }).click();
   await page
     .getByRole("button", { name: "Xem chi tiết & điểm phù hợp" })
@@ -109,11 +115,15 @@ test("product CRUD and deletion from laptop catalog", async ({ page }) => {
   await expect(card).toBeVisible();
   await page.getByRole("button", { name: "Đổi tài khoản" }).click();
   await page.getByRole("menuitemradio", { name: /Người dùng/ }).click();
+  await page.getByPlaceholder("Tìm tên, mã sản phẩm, CPU, GPU…").fill(code);
+  await expect(card).toBeVisible();
   await expect(
     card.getByRole("checkbox", { name: "Chọn " + code }),
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Đổi tài khoản" }).click();
   await page.getByRole("menuitemradio", { name: /Quản trị demo/ }).click();
+  await page.getByPlaceholder("Tìm tên, mã sản phẩm, CPU, GPU…").fill(code);
+  await expect(card).toBeVisible();
   await expect(card.getByRole("button", { name: "Xóa " + code })).toHaveCount(
     0,
   );
@@ -332,7 +342,10 @@ test("attribute acquisition and help, mobile layout", async ({
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBeTruthy();
-    await page.screenshot({ path: "../docs/mobile.png", fullPage: true });
+    await page.screenshot({
+      path: test.info().outputPath("mobile.png"),
+      fullPage: true,
+    });
     await page.getByRole("button", { name: "Mở menu", exact: true }).click();
     await page
       .getByRole("button", { name: "Tư vấn laptop", exact: true })

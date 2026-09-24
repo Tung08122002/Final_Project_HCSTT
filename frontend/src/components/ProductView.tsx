@@ -102,10 +102,12 @@ export function ProductDetail({
   product: p,
   recommendation: r,
   onClose,
+  showRawData = false,
 }: {
   product: Product;
   recommendation?: Recommendation;
   onClose: () => void;
+  showRawData?: boolean;
 }) {
   return (
     <Modal title="Chi tiết laptop" onClose={onClose} wide>
@@ -186,10 +188,12 @@ export function ProductDetail({
           ))}
         </div>
       )}
-      <details className="mt-4">
-        <summary>Dữ liệu gốc từ Excel</summary>
-        <pre>{JSON.stringify(p.raw_data, null, 2)}</pre>
-      </details>
+      {showRawData && (
+        <details className="mt-4">
+          <summary>Dữ liệu gốc từ Excel</summary>
+          <pre>{JSON.stringify(p.raw_data, null, 2)}</pre>
+        </details>
+      )}
     </Modal>
   );
 }

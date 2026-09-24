@@ -1,13 +1,17 @@
+import { accountHeaders } from "./account";
+
 export async function api<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const headers = new Headers(options.headers);
+  if (!(options.body instanceof FormData))
+    headers.set("Content-Type", "application/json");
+  for (const [key, value] of Object.entries(accountHeaders()))
+    headers.set(key, value);
   const response = await fetch("/api" + path, {
     ...options,
-    headers:
-      options.body instanceof FormData
-        ? options.headers
-        : { "Content-Type": "application/json", ...options.headers },
+    headers,
   });
   if (!response.ok) {
     const body = await response

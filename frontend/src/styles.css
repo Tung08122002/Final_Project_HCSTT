@@ -240,6 +240,9 @@ details[open] > summary {
   margin-left: 248px;
 }
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 25;
   height: 77px;
   background: #fff;
   border-bottom: 1px solid #e8edeb;
@@ -248,6 +251,9 @@ details[open] > summary {
   justify-content: space-between;
   padding: 0 35px;
   gap: 15px;
+}
+html {
+  scroll-padding-top: 95px;
 }
 .breadcrumb {
   font-size: 12px;
@@ -1704,11 +1710,55 @@ tbody tr:hover {
 .help-list summary {
   font-size: 13px;
 }
-.help-list p {
-  font-size: 12px;
-  line-height: 1.9;
-  color: #7d9283;
-  margin: 16px 0 0 31px;
+.help-content {
+  font-size: 14px;
+  line-height: 1.85;
+  color: #405a50;
+  padding-top: 4px;
+}
+.help-content p,
+.help-content ul,
+.help-content ol,
+.help-content h4 {
+  margin-top: 16px;
+}
+.help-content ol,
+.help-content ul {
+  padding-left: 24px;
+  list-style: decimal;
+}
+.help-content ul {
+  list-style: disc;
+}
+.help-content li + li {
+  margin-top: 10px;
+}
+.help-content strong,
+.help-content h4 {
+  color: #164f40;
+}
+.help-content mark {
+  background: #fff0b3;
+  color: #514000;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.help-callout {
+  background: #eef7f2;
+  border-left: 4px solid #258369;
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin-top: 18px;
+}
+.selection-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #eef7f2;
+  border: 1px solid #d2e6db;
+  border-radius: 10px;
 }
 .mobile-menu,
 .mobile-close {

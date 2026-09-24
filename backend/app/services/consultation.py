@@ -9,7 +9,9 @@ from app.services.matching import match_products
 from app.services.validation import validate_facts
 
 
-def run_consultation(db, request, persist=False):
+def run_consultation(db, request, persist=False, owner_id=None):
+    if persist and not owner_id:
+        raise ValueError("Cần xác định người dùng trước khi lưu lịch sử")
     repository = CatalogRepository(db)
     attributes, rules = repository.attributes(), repository.rules()
     validate_facts(request.facts, attributes)
@@ -37,6 +39,7 @@ def run_consultation(db, request, persist=False):
     result = jsonable_encoder(result)
     if persist:
         session = ConsultationSession(
+            owner_id=owner_id,
             initial_facts_json=result["initial_facts"],
             final_facts_json=result["final_facts"],
             recommendation_json=result,
