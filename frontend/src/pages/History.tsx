@@ -181,7 +181,7 @@ export default function History({ admin = false }: { admin?: boolean }) {
                         </td>
                       )}
                       <td>
-                        <b>#{s.id}</b>
+                        <b>#{s.history_number}</b>
                       </td>
                       <td>{dateTime(s.created_at)}</td>
                       <td>
@@ -224,7 +224,9 @@ export default function History({ admin = false }: { admin?: boolean }) {
       </section>
       {result && !trace && !selected && (
         <Modal
-          title={"Phiên tư vấn #" + result.session_id}
+          title={
+            "Phiên tư vấn #" + (result.history_number ?? result.session_id)
+          }
           onClose={() => setResult(undefined)}
           wide
         >
@@ -278,7 +280,8 @@ export default function History({ admin = false }: { admin?: boolean }) {
           <ul className="bulk-delete-list">
             {checkedSessions.map((s) => (
               <li key={s.id}>
-                Phiên <strong>#{s.id}</strong> · {dateTime(s.created_at)}
+                Phiên <strong>#{s.history_number}</strong> ·{" "}
+                {dateTime(s.created_at)}
               </li>
             ))}
           </ul>

@@ -111,6 +111,7 @@ export interface Recommendation {
 }
 export interface InferenceResult {
   session_id?: number;
+  history_number?: number;
   created_at?: string;
   initial_facts: Facts;
   final_facts: Facts;
@@ -138,6 +139,7 @@ export interface InferenceResult {
 }
 export interface HistoryItem {
   id: number;
+  history_number: number;
   created_at: string;
   initial_facts: Facts;
   rules_fired: number;

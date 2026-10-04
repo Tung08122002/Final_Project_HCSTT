@@ -232,7 +232,7 @@ export default function Dashboard({
                 {d.recent_consultations.map((s) => (
                   <tr key={s.id}>
                     <td>
-                      <b>#{String(s.id).padStart(4, "0")}</b>
+                      <b>#{String(s.history_number).padStart(4, "0")}</b>
                     </td>
                     <td>{dateTime(s.created_at)}</td>
                     <td>{String(s.initial_facts.purpose || "Tùy chỉnh")}</td>

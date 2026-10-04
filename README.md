@@ -243,7 +243,7 @@ Phân hạng GPU chỉ là heuristic demo: RTX có cấp theo phân khúc mã xx
 
 ### Lịch sử riêng trong chế độ demo
 
-Hệ thống chưa có đăng nhập. Admin dùng hồ sơ `demo-admin`; mỗi trình duyệt (cùng origin) có một UUID User được lưu trong `localStorage` với khóa `laptop-advisor.demo-user`. Phiên của User được lưu với `owner_id = demo-user:<UUID>` trong bảng `consultation_sessions`. Vì vậy Admin và User không dùng chung lịch sử, và User trên hai trình duyệt khác nhau cũng có lịch sử riêng. API lọc cả danh sách, tổng số, chi tiết phiên và lịch sử gần đây trên Tổng quan theo hồ sơ hiện tại. Chức năng xóa lịch sử chỉ cho vai trò Admin và chỉ xóa phiên thuộc hồ sơ Admin.
+Hệ thống chưa có đăng nhập. Admin dùng hồ sơ `demo-admin`; mỗi trình duyệt (cùng origin) có một UUID User được lưu trong `localStorage` với khóa `laptop-advisor.demo-user`. Phiên của User được lưu với `owner_id = demo-user:<UUID>` trong bảng `consultation_sessions`. Vì vậy Admin và User không dùng chung lịch sử, và User trên hai trình duyệt khác nhau cũng có lịch sử riêng. API lọc cả danh sách, tổng số, chi tiết phiên và lịch sử gần đây trên Tổng quan theo hồ sơ hiện tại. **Số hiển thị trong lịch sử (`history_number`) được tính riêng cho từng `owner_id`, bắt đầu từ 1 theo thời gian tạo và tự đánh lại liên tục sau khi xóa; `session_id`/`id` vẫn là khóa kỹ thuật toàn cục để truy vấn, xóa và xuất log.** Chức năng xóa lịch sử chỉ cho vai trò Admin và chỉ xóa phiên thuộc hồ sơ Admin.
 
 **Dùng lại cùng trình duyệt và địa chỉ web để xem lịch sử User cũ.** `localhost:5173` và `127.0.0.1:5173` là hai origin khác nhau. Xóa dữ liệu website hoặc dùng ẩn danh sẽ tạo hồ sơ mới; dữ liệu cũ vẫn ở database nhưng không tự chuyển sang hồ sơ mới. Chưa có đồng bộ tài khoản giữa các thiết bị.
 
@@ -400,7 +400,7 @@ $headers = @{'X-Demo-Role'='admin'}
 Invoke-RestMethod http://127.0.0.1:8000/api/consultations -Method Post -Headers $headers -ContentType 'application/json' -Body $body
 ```
 
-Response gồm `initial_facts`, `matched_rules`, `steps`, `final_facts`, `working_memory`, `provenance`, `technical_requirements`, `recommended_products`, `explanation`, `termination`, và `session_id` nếu lưu phiên. Mã lỗi 422 cho validation, 404 không tìm thấy, 409 unique/dependency conflict. PUT nhận toàn bộ bản ghi chỉnh sửa; không phải PATCH từng trường.
+Response gồm `initial_facts`, `matched_rules`, `steps`, `final_facts`, `working_memory`, `provenance`, `technical_requirements`, `recommended_products`, `explanation`, `termination`, `session_id` và `history_number` nếu lưu phiên. `history_number` là số thứ tự riêng của tài khoản; `session_id` vẫn là ID database. Mã lỗi 422 cho validation, 404 không tìm thấy, 409 unique/dependency conflict. PUT nhận toàn bộ bản ghi chỉnh sửa; không phải PATCH từng trường.
 
 ## 11. Kiểm thử
 

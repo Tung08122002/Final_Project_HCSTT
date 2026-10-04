@@ -1,6 +1,6 @@
 # Báo cáo kiểm thử
 
-Ngày thực hiện: **17/09/2026**, cập nhật **24/09/2026**. Môi trường Windows, Python **3.13.12**, Node.js **24.19.0**, SQLite built-in. File gốc `Laptop_data.xlsx` được giữ nguyên.
+Ngày thực hiện: **17/09/2026**, cập nhật **04/10/2026**. Môi trường Windows, Python **3.13.12**, Node.js **24.19.0**, SQLite built-in. File gốc `Laptop_data.xlsx` được giữ nguyên.
 
 | Kiểm tra | Kết quả |
 |---|---|
@@ -8,7 +8,7 @@ Ngày thực hiện: **17/09/2026**, cập nhật **24/09/2026**. Môi trường
 | Import lần đầu | 50 created, 0 failed |
 | Import lại qua API/UI | 50 updated; không tạo sản phẩm trùng |
 | Import chế độ bỏ qua | 50 skipped |
-| Pytest | **60 passed**, 1.57 giây |
+| Pytest | **61 passed**, 4.07 giây |
 | Ruff check | **All checks passed** |
 | Ruff format | **Pass** |
 | TypeScript + Vite production build | **Pass**, 1594 modules; JS ~344 kB, gzip ~101 kB |
@@ -38,6 +38,7 @@ Ngày thực hiện: **17/09/2026**, cập nhật **24/09/2026**. Môi trường
 - Xóa nhiều phiên Admin theo sở hữu trong một giao dịch; ID rỗng/sai/thuộc User không xóa dở danh sách; User gọi xóa trả 403; logs của phiên bị xóa được dọn, phiên User khác vẫn giữ nguyên.
 - Excel mẫu tải về đúng MIME/tên file, một sheet, chỉ một dòng chứa 12 header khớp file gốc; điền thêm một laptop vào mẫu rồi import thành công.
 - Migration SQLite cũ giữ ID và snapshot, tạo backup trước ALTER; chạy lại không tạo backup trùng và có index cho owner_id.
+- Số thứ tự lịch sử tính riêng theo `owner_id`: phiên đầu của mỗi hồ sơ là `history_number=1`, phiên tiếp theo là2; ID database vẫn toàn cục. Sau khi xóa phiên đầu, các phiên còn lại được đánh số lại liên tục từ1.
 
 Tests backend dùng SQLite in-memory riêng và thay lifespan để không tác động database demo. Có **2 cảnh báo deprecation từ Starlette/AnyIO** về httpx và BlockingPortal; không có test thất bại.
 

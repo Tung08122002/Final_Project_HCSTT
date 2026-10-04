@@ -3,7 +3,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.api.identity import DemoAccount, admin_account, current_account
@@ -30,6 +30,22 @@ def require(db, model, id):
     if obj is None:
         raise HTTPException(404, "Không tìm thấy dữ liệu")
     return obj
+
+
+def history_number(db: Session, session: ConsultationSession) -> int:
+    """Return the current one-based ordinal within this owner's history."""
+    earlier = or_(
+        ConsultationSession.created_at < session.created_at,
+        and_(
+            ConsultationSession.created_at == session.created_at,
+            ConsultationSession.id <= session.id,
+        ),
+    )
+    return db.scalar(
+        select(func.count())
+        .select_from(ConsultationSession)
+        .where(ConsultationSession.owner_id == session.owner_id, earlier)
+    ) or 1
 
 
 @router.get("/health")
@@ -228,7 +244,10 @@ def consult(
     db: Session = Depends(get_db),
     account: DemoAccount = Depends(current_account),
 ):
-    return run_consultation(db, data, persist=True, owner_id=account.owner_id)
+    result = run_consultation(db, data, persist=True, owner_id=account.owner_id)
+    session = db.get(ConsultationSession, result["session_id"])
+    result["history_number"] = history_number(db, session)
+    return result
 
 
 @router.get("/consultations")
@@ -250,6 +269,7 @@ def consultations(
         "items": [
             {
                 "id": s.id,
+                "history_number": history_number(db, s),
                 "created_at": s.created_at,
                 "initial_facts": s.initial_facts_json,
                 "rules_fired": len(s.recommendation_json["steps"]),
@@ -302,5 +322,6 @@ def consultation(
     return {
         **session.recommendation_json,
         "session_id": session.id,
+        "history_number": history_number(db, session),
         "created_at": session.created_at,
     }

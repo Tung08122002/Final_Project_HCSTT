@@ -31,9 +31,13 @@ def test_history_scoped_by_account_including_detail_pagination_dashboard(client)
     admin_id = save_session(client)
     alice_ids = [save_session(client, alice) for _ in range(2)]
     bob_id = save_session(client, bob)
+    sequence = {admin_id: 1, alice_ids[0]: 1, alice_ids[1]: 2, bob_id: 1}
     for headers, expected in [({}, [admin_id]), (alice, alice_ids[::-1]), (bob, [bob_id])]:
         history = client.get("/api/consultations", headers=headers).json()
         assert [row["id"] for row in history["items"]] == expected
+        assert [row["history_number"] for row in history["items"]] == list(
+            range(len(expected), 0, -1)
+        )
         assert history["total"] == len(expected)
         dashboard = client.get("/api/dashboard", headers=headers).json()
         assert dashboard["consultation_sessions"] == len(expected)
@@ -41,6 +45,8 @@ def test_history_scoped_by_account_including_detail_pagination_dashboard(client)
         for session_id in [admin_id, *alice_ids, bob_id]:
             response = client.get(f"/api/consultations/{session_id}", headers=headers)
             assert response.status_code == (200 if session_id in expected else 404)
+            if session_id in expected:
+                assert response.json()["history_number"] == sequence[session_id]
     second_page = client.get("/api/consultations?page=2&page_size=1", headers=alice).json()
     assert second_page["total"] == 2
     assert [s["id"] for s in second_page["items"]] == [alice_ids[0]]
@@ -57,6 +63,23 @@ def test_history_requires_explicit_valid_identity(client):
         {"X-Demo-Role": "invalid"},
     ]:
         assert client.get("/api/consultations", headers=headers).status_code == 422
+
+
+def test_history_numbers_are_current_one_based_ordinals_after_delete(client):
+    first = save_session(client)
+    second = save_session(client)
+    third = save_session(client)
+    created = client.post(
+        "/api/consultations", json={"facts": {"purpose": "office"}}
+    ).json()
+    assert created["history_number"] == 4
+
+    response = client.request("DELETE", "/api/consultations", json={"ids": [first]})
+    assert response.status_code == 200
+    rows = client.get("/api/consultations").json()["items"]
+    assert [row["id"] for row in rows] == [created["session_id"], third, second]
+    assert [row["history_number"] for row in rows] == [3, 2, 1]
+    assert client.get(f"/api/consultations/{second}").json()["history_number"] == 1
 
 
 def test_admin_bulk_history_delete_is_atomic_owned_and_cascades(client):

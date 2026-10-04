@@ -373,7 +373,9 @@ export default function Consultation({ admin = false }: { admin?: boolean }) {
         <section id="results" className="mt-8">
           <div className="page-heading">
             <div>
-              <div className="eyebrow">KẾT QUẢ TƯ VẤN #{result.session_id}</div>
+              <div className="eyebrow">
+                KẾT QUẢ TƯ VẤN #{result.history_number ?? result.session_id}
+              </div>
               <h2>Những lựa chọn phù hợp</h2>
               <p>
                 {result.matched_rules.length} luật đã áp dụng ·{" "}
